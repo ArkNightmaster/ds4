@@ -1,0 +1,13 @@
+{
+  "chars": 1036939,
+  "config": "en",
+  "dataset": "allenai/c4",
+  "docs": 512,
+  "format": "ds4-expert-prune-c4-dataset-v1",
+  "max_chars_per_doc": 8192,
+  "min_chars": 200,
+  "output": "gguf-tools/expert-prune/ds4-c4-prune.txt",
+  "source": "hf",
+  "split": "train",
+  "text_field": "text"
+}

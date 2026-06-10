@@ -1,5 +1,82 @@
 # DwarfStar
 
+## Fork Overview
+
+This fork is based on the upstream DwarfStar project and focuses on routed-MoE
+expert pruning for DeepSeek V4 Flash. The upstream remote is `ds4`
+(`git@github.com:antirez/ds4.git`), and this fork is published through `origin`
+(`https://github.com/ArkNightmaster/ds4.git`).
+
+Current fork metadata:
+
+| Item | Value |
+| --- | --- |
+| Fork branch | `origin/main`, the `main` branch of `ArkNightmaster/ds4` |
+| Upstream base | Split from upstream `ds4/main` at `86ffb09` (`Document experimental PRO support`, 2026-05-25) |
+| Current fork commit | `b3eaadd` (`更新了文档和mask.json的位置`, 2026-06-02) |
+| Fork version | `0.1.0-prune`, a README-level fork version bound to commit `b3eaadd`; the repository does not have a git tag yet |
+| Main research target | Shape-preserving routed-expert pruning for DeepSeek V4 Flash |
+
+### Highlights
+
+- Implemented an OMP/C4 calibration pipeline for measuring routed-MoE expert
+  contribution and generating expert keep masks.
+- Added the `ds4-expert-mask-v1` JSON mask format and `--expert-mask` loading
+  support across the CLI, server, agent, eval, and benchmark entry points.
+- Added masked-inference routing support for both CUDA and Metal paths.
+- Added a pruning-ratio sweep tool for testing multiple routed-expert keep
+  ratios.
+- The main result is `gguf-tools/expert-prune/ds4-c4-keep036.json`: a 36%
+  routed-expert keep-ratio mask. With the original GGUF tensor shape preserved,
+  this masks out about 64% of routed experts at runtime.
+- The 36% mask metadata is: 43 layers, 256 experts per layer, `top_k=6`,
+  `keep_per_layer=92`, or about 35.94% experts kept per layer. The generation
+  run recorded 5,636,096 observed tokens and 33,816,576 observed routes.
+- Added reproducible C4 calibration metadata in
+  `gguf-tools/expert-prune/ds4-c4-prune.txt.manifest.json`, covering the
+  `allenai/c4` English train split, 512 documents, and 1,036,939 characters.
+
+Important limitation: the current pruning implementation is runtime masking,
+not structural GGUF compression. It avoids masked experts during routing, but it
+does not yet physically remove GGUF tensors, reduce the model file size, or
+change the expert count declared in model metadata.
+
+### Project Progress
+
+| Date | Commit | Progress |
+| --- | --- | --- |
+| 2026-05-25 | `6283934` | Introduced the first expert-prune implementation: C4 dataset builder, OMP statistics collection, `--expert-prune-*` mask-generation flags, `--expert-mask` runtime loading, and Linux usage notes. |
+| 2026-05-27 | `490db98` | Added the keep-ratio sweep workflow, committed the first C4 calibration materials, and started experiments across pruning ratios. |
+| 2026-06-01 | `7950cd6`, `ef69d73`, `d8dee14` | Reworked user-facing run notes for Linux/CUDA server deployment and macOS/Metal usage. |
+| 2026-06-01 | `013e9e5` | Completed Metal-side expert-mask routing changes and updated macOS usage guidance. |
+| 2026-06-02 | `b3eaadd` | Committed the 36% keep-ratio mask (`ds4-c4-keep036.json`) and C4 manifest; this is the current fork version anchor. |
+
+### Improvement Direction
+
+Near-term work:
+
+- Turn the current pruning smoke tests into reproducible quality reports
+  covering code, math, Chinese/English writing, long-context prompts, and
+  official continuation vectors.
+- Benchmark masked inference against full routing on CUDA and Metal, tracking
+  prefill speed, generation speed, memory pressure, and output-quality
+  degradation.
+- Extend sweep reports so every keep ratio records the calibration command,
+  model hash, mask hash, prompt set, pass/fail result, and representative
+  output.
+
+Medium-term work:
+
+- Move from shape-preserving runtime masks to structural pruning: generate a
+  smaller GGUF layout, physically remove pruned routed-expert tensors, reduce
+  disk footprint, and make loader metadata reflect the real expert count.
+- Merge useful upstream changes after the fork point while keeping pruning
+  reproducible, especially later `ds4/main` work around SSD streaming,
+  distributed inference, and agent polish.
+- Explore adaptive or layer-specific keep ratios instead of one global ratio,
+  allowing sensitive layers to keep more experts while redundant layers are
+  pruned more aggressively.
+
 **DwarfStar** is a small native inference engine optimized first for
 **DeepSeek V4 Flash**, with support for **DeepSeek V4 PRO** on very high-memory
 machines. It is
@@ -101,6 +178,11 @@ next sections.
   imatrix collection, quantization tooling, and quality checks.
 - [gguf-tools/imatrix/README.md](gguf-tools/imatrix/README.md): how the
   routed-MoE imatrix is collected and used.
+- [gguf-tools/expert-prune/README.md](gguf-tools/expert-prune/README.md): how
+  to build a C4 calibration file, generate routed-expert keep masks, and sweep
+  pruning ratios including the fork's 36% keep-ratio artifact.
+- [read4me.md](read4me.md): Chinese quick-start notes for generating and using
+  the 36% keep-ratio mask on Linux/CUDA and macOS/Metal.
 - [gguf-tools/imatrix/dataset/README.md](gguf-tools/imatrix/dataset/README.md):
   how the calibration prompt corpus is generated.
 - [gguf-tools/quality-testing/README.md](gguf-tools/quality-testing/README.md):
