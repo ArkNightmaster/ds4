@@ -14030,7 +14030,9 @@ int ds4_gpu_routed_moe_one_tensor(
         uint32_t                n_total_expert,
         uint32_t                n_expert,
         float                   clamp,
-        const ds4_gpu_tensor *x) {
+        const ds4_gpu_tensor *x,
+        uint32_t                layer_index) {
+    (void)layer_index;
     if (!g_initialized && !ds4_gpu_init()) return 0;
     if (!out || !gate || !up || !mid || !x || !model_map || !selected || !weights ||
         n_total_expert == 0 || n_expert == 0 || n_expert > 6) {

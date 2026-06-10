@@ -223,4 +223,20 @@ int ds4_session_save_snapshot(ds4_session *s, ds4_session_snapshot *snap, char *
 int ds4_session_load_snapshot(ds4_session *s, const ds4_session_snapshot *snap, char *err, size_t errlen);
 void ds4_session_snapshot_free(ds4_session_snapshot *snap);
 
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+int cuda_imatrix_init(uint64_t n_layers, uint64_t n_experts,
+                      uint64_t expert_in_dim, uint64_t expert_mid_dim,
+                      const char* output_path);
+
+int cuda_imatrix_finalize(void);
+
+bool cuda_imatrix_is_collecting(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // DS4_H

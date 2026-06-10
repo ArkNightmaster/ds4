@@ -638,6 +638,8 @@ int ds4_gpu_router_select_batch_tensor(
         float                   expert_weight_scale,
         uint32_t                n_tokens);
 
+int ds4_gpu_routed_moe_set_selected_override(const int32_t *selected, uint32_t n_selected);
+
 int ds4_gpu_routed_moe_one_tensor(
         ds4_gpu_tensor       *out,
         ds4_gpu_tensor       *gate,
@@ -663,7 +665,8 @@ int ds4_gpu_routed_moe_one_tensor(
         uint32_t                n_total_expert,
         uint32_t                n_expert,
         float                   clamp,
-        const ds4_gpu_tensor *x);
+        const ds4_gpu_tensor *x,
+        uint32_t                layer_index);
 
 int ds4_gpu_routed_moe_batch_tensor(
         ds4_gpu_tensor       *out,
